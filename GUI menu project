@@ -1,0 +1,268 @@
+
+import tkinter as tk
+import subprocess
+import speech_recognition as sr
+import webbrowser
+import boto3
+from twilio.rest import Client
+from geopy.geocoders import Nominatim
+import pyttsx3
+import pywhatkit
+import smtplib, ssl
+import os
+import cv2
+
+def open_chrome():
+    url = "http://www.google.com"  # Replace this URL with the one you want to open
+    webbrowser.open(url)
+    
+def send_email():
+    try:
+        # Get user input for email details
+        sender_email = os.environ.get("enter sender's mail ID") // I have use os.environ as i have set my ID and password in envirinmental variable 
+        sender_password = os.environ.get("enter the password")
+        receiver_email = receiver_email_entry.get()
+        message = message_entry.get()
+
+        # Create a secure SSL context
+        context = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+
+        # Log in to your Gmail account
+        context.login(sender_email, sender_password)
+
+        # Compose the email
+        email = f"{message}"
+
+        # Send the email
+        context.sendmail(sender_email, receiver_email, email)
+
+        # Close the connection
+        context.quit()
+
+        print("Email sent successfully")
+    except Exception as e:
+        print("An error occurred:", str(e))
+        
+        
+def speech_to_text():
+    recognizer = sr.Recognizer()
+    # Use the default microphone as the audio source
+    with sr.Microphone() as source:
+        print("Say something...")
+        audio = recognizer.listen(source)
+
+    # Recognize speech using Google Web Speech API
+    try:
+        recognized_text = recognizer.recognize_google(audio)
+        recognized_label.config(text="You said: " + recognized_text)
+        print("You said: " + recognized_text)
+    except sr.UnknownValueError:
+        recognized_label.config(text="Could not understand audio.")
+        print("Could not understand audio.")
+    except sr.RequestError as e:
+        recognized_label.config(text="Error connecting to Google Web Speech API: {0}".format(e))
+        print("Error connecting to Google Web Speech API: {0}".format(e))
+        
+def open_notepad():
+    subprocess.Popen(['notepad.exe'])
+    
+def send_sms():
+    # Your Twilio Account SID and Auth Token
+    account_sid = 'enter your SID  which you get from Twilio'
+    auth_token = 'enter you authentication token of Twilio'
+
+    # Create a Twilio client
+    client = Client(account_sid, auth_token)
+
+    # Get the user's message from the input box
+    message_text = message_entry.get("1.0", "end-1c")
+
+    # Specify the sender and receiver phone numbers
+    sender_phone = 'enter your vitual number '
+    receiver_phone = '*********'  # Replace with the recipient's phone number, it should be verified
+
+    # Send the SMS
+    message = client.messages.create(
+        from_=sender_phone,
+        to=receiver_phone,
+        body=message_text
+    )
+
+    # Print a success message
+    print(f"SMS sent successfully to {receiver_phone}: {message_text}")
+
+
+    
+def open_whatsapp():
+    phone_number = "*******" #replace by receiver number
+    # Replace the message with the content you want to send
+    message = "Hello, this is an automated message!"
+    
+    url = f"https://api.whatsapp.com/send?phone={phone_number}&text={message}"
+    webbrowser.open(url)
+    
+def speak():
+    pyttsx3.init()
+    myspeaker = pyttsx3.init()
+    myspeaker.say("Good morning")
+    myspeaker.runAndWait()
+    
+def open_calculator():
+    subprocess.Popen(['calc.exe']) 
+    
+def open_paint():
+    subprocess.Popen(['mspaint.exe'])
+
+    
+def open_youtube():
+    webbrowser.open("https://www.youtube.com")
+    
+def open_paint():
+    subprocess.Popen(['mspaint.exe'])
+
+    
+def open_facebook():   #if we are opening a browser, we can pass a link
+    os.system("start msedge www.facebook.com")#to some website as an argument
+
+    
+def open_camera():
+    cap = cv2.VideoCapture(0)  # Open the camera (camera index 0)
+    status , pic  = cap.read()
+    status
+    cv2.imshow("my window" , pic)
+    cv2.waitKey(8000)
+    cv2.destroyAllWindows()
+    
+def open_instagram():
+    webbrowser.open("https://www.instagram.com/")
+    
+def open_codechef():
+    url = "https://www.codechef.com"  # Replace with the URL of CodeChef
+    webbrowser.open(url)
+    
+def ec2launch():
+    session = boto3.Session(aws_access_key_id='enter you access key of asw',
+                            aws_secret_access_key='enter your secrete key of aws', region_name='enter the region name')
+    launch = session.client('ec2', region_name='ap-south-1')
+    launch.run_instances(ImageId="ami- enetrt you ami ID",
+                         InstanceType="t2.micro",
+                         MaxCount=1,
+                         MinCount=1)
+
+def open_facebook():
+    os.system("start msedge www.facebook.com")
+    
+def add_task():
+    task = task_entry.get()
+    if task:
+        task_listbox.insert(tk.END, task)
+        task_entry.delete(0, tk.END)
+
+def remove_task():
+    selected_task = task_listbox.curselection()
+    if selected_task:
+        task_listbox.delete(selected_task)
+
+top = tk.Tk()
+top.geometry("1000x600")
+top.title("MENU")
+top.configure(bg="#E6E6FA")
+
+# Create a frame for the right side buttons
+right_frame = tk.Frame(top, bg="#E6E6FA")  # Set background color for the right frame
+right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+# Create a frame for the left side buttons
+left_frame = tk.Frame(top, bg="#E6E6FA")  # Set background color for the left frame
+left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+ec2_button = tk.Button(left_frame, text="EC2 Launch", command=ec2launch, bg="#FFD700", fg="black")
+ec2_button.pack(fill="both", padx=10, pady=10)
+
+# Create labels and entry fields for email
+receiver_email_label = tk.Label(left_frame, text="Receiver Email:")
+receiver_email_label.pack(fill="both", padx=30, pady=10)
+receiver_email_entry = tk.Entry(left_frame)
+receiver_email_entry.pack(fill="both", padx=10, pady=10)
+
+message_label = tk.Label(left_frame, text="Message:")
+message_label.pack(fill="both", padx=10, pady=10)
+message_entry = tk.Entry(left_frame)
+message_entry.pack(fill="both", padx=10, pady=10)
+
+send_email_button = tk.Button(left_frame, text="Send Email", command=send_email, bg="cyan", fg="black")
+send_email_button.pack(fill="both", padx=10, pady=10)
+
+
+whatsapp_button = tk.Button(right_frame, text="WhatsApp", command=open_whatsapp, bg="#90EE90", fg="black")
+whatsapp_button.pack(fill="both", padx=10, pady=10)
+
+camera_button = tk.Button(left_frame, text="Camera", command=open_camera, bg="#77DD77", fg="black")
+camera_button.pack(fill="both", padx=10, pady=10)
+
+youtube_button = tk.Button(left_frame, text="YouTube", command=open_youtube, bg="#98FB98", fg="black")
+youtube_button.pack(fill="both", padx=10, pady=10)
+
+chrome_button = tk.Button(right_frame, text="Open Chrome", command=open_chrome, bg="#E0FFFF", fg="black")
+chrome_button.pack(fill="both", padx=10, pady=10)
+
+
+calculator_button = tk.Button(left_frame, text="Calculator", command=open_calculator, bg="#87CEEB", fg="black")
+calculator_button.pack(fill="both", padx=10, pady=10)
+
+facebook_button = tk.Button(right_frame, text="  facebook", command=open_facebook , bg="#D8BFD8", fg="black")
+facebook_button.pack(fill="both", padx=10, pady=10)
+
+# Create a label for the message input
+message_label = tk.Label(right_frame, text="Enter Message:")
+message_label.pack()
+
+# Create a Text widget for message input
+message_entry = tk.Text(right_frame, height=5, width=30)
+message_entry.pack()
+
+# Create an SMS button
+sms_button = tk.Button(right_frame, text="Send SMS", command=send_sms, bg="#D8BFD8", fg="black")
+sms_button.pack()
+
+
+notepad_button = tk.Button(right_frame, text=" Notepad", command=open_notepad, bg="blue", fg="white")
+notepad_button.pack(fill="both", padx=10, pady=10) 
+
+# Create a button to open CodeChef
+codechef_button = tk.Button(right_frame, text="Open CodeChef", command=open_codechef, bg="#FFD700", fg="black")
+codechef_button.pack(fill="both", padx=10, pady=10)
+
+recognized_label = tk.Label(right_frame, text="", fg="green")
+recognized_label.pack(fill="both", padx=10, pady=10)
+
+text_to_speech_button = tk.Button(right_frame, text="Speech to Text", command=speech_to_text, bg="#ADD8E6", fg="black")
+text_to_speech_button.pack(fill="both", padx=10, pady=10)
+
+instagram_button = tk.Button(right_frame, text="Open Instagram", command=open_instagram, bg="#E6E6FA", fg="black")
+instagram_button.pack(fill="both", padx=10, pady=10)
+
+paint_button = tk.Button(right_frame, text="Paint", command=open_paint, bg="#AFEEEE", fg="black" )
+paint_button.pack(fill="both", padx=10, pady=10)
+
+speak_button = tk.Button(left_frame, text="Wishing", command=speak, bg="#FFB6C1", fg="black")
+speak_button.pack(fill="both", padx=10, pady=10)
+
+task_frame = tk.Frame(top, padx=20, pady=20)
+task_frame.pack()
+
+task_entry = tk.Entry(task_frame)
+task_entry.pack()
+
+add_task_button = tk.Button(task_frame, text="Add Task", command=add_task)
+add_task_button.pack()
+
+remove_task_button = tk.Button(task_frame, text="Remove Task", command=remove_task)
+remove_task_button.pack()
+
+task_listbox = tk.Listbox(task_frame)
+task_listbox.pack()
+
+top.configure(bg="#E6E6FA")
+
+top.mainloop()
